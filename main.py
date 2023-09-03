@@ -24,8 +24,11 @@ df_gastos_items = pd.read_parquet('data_render/df_gastos_items.parquet')
 df_genre_ranking = pd.read_parquet('data_render/df_genre_ranking.parquet')
 df_playtime_forever = pd.read_parquet('data_render/df_playtime_forever.parquet')
 df_items_developer = pd.read_parquet('data_render/df_items_developer.parquet')
-df = pd.read_parquet('data_render/df.parquet')
-piv_norm = pd.read_parquet('data_render/piv_norm.parquet')
+
+item_sim_df = pd.read_parquet('data_render/item_sim_df.parquet')
+
+
+
 
 @app.get(path="/", 
          response_class=HTMLResponse,
@@ -285,8 +288,6 @@ def sentiment_analysis(anio: str = Query(...,
     return sentiment_counts
 
 
-# Cargar la matriz desde el archivo CSV
-item_sim_df = pd.read_csv('data/item_sim_df.csv')
 
 @app.get('/recomendacion_usuario',
          description=""" <font color="blue">
@@ -309,43 +310,43 @@ def top_game(game):
 
 
 
-@app.get('/recomendacion_usuario2',
-         description=""" <font color="blue">
-                    INSTRUCCIONES<br>
-                    1. Haga clik en "Try it out".<br>
-                    2. Ingrese el id del usuario en box abajo.<br>
-                    3. Scrollear a "Resposes" para ver los juegos recomendados para ese usuario.
-                    </font>
-                    """,
-         tags=["Recomendación"])
-def similar_user_recs(user):
+# @app.get('/recomendacion_usuario2',
+#          description=""" <font color="blue">
+#                     INSTRUCCIONES<br>
+#                     1. Haga clik en "Try it out".<br>
+#                     2. Ingrese el id del usuario en box abajo.<br>
+#                     3. Scrollear a "Resposes" para ver los juegos recomendados para ese usuario.
+#                     </font>
+#                     """,
+#          tags=["Recomendación"])
+# def similar_user_recs(user):
     
-    if user not in piv_norm.columns:
-        return('No data available on user {}'.format(user))
+#     if user not in piv_norm.columns:
+#         return('No data available on user {}'.format(user))
     
-    sim_users = user_sim_df.sort_values(by=user, ascending=False).user_id[1:11]
-    best = []
-    most_common = {}
+#     sim_users = user_sim_df.sort_values(by=user, ascending=False).user_id[1:11]
+#     best = []
+#     most_common = {}
     
-    for i in sim_users:
-        i = str(i)
-        max_score = piv_norm.loc[:, i].max()
-        best.append(piv_norm[piv_norm.loc[:, i]==max_score].item_name.tolist())
-    for i in range(len(best)):
-        for j in best[i]:
-            if j in most_common:
-                most_common[j] += 1
-            else:
-                most_common[j] = 1
-    sorted_list = sorted(most_common.items(), key=operator.itemgetter(1), reverse=True)
-    recomendaciones = {}  # Inicializa un diccionario vacío
-    contador = 1  # Inicializa un contador en 1
+#     for i in sim_users:
+#         i = str(i)
+#         max_score = piv_norm.loc[:, i].max()
+#         best.append(piv_norm[piv_norm.loc[:, i]==max_score].item_name.tolist())
+#     for i in range(len(best)):
+#         for j in best[i]:
+#             if j in most_common:
+#                 most_common[j] += 1
+#             else:
+#                 most_common[j] = 1
+#     sorted_list = sorted(most_common.items(), key=operator.itemgetter(1), reverse=True)
+#     recomendaciones = {}  # Inicializa un diccionario vacío
+#     contador = 1  # Inicializa un contador en 1
 
-    for juego, _ in sorted_list:
-        if contador <= 5:  # Verifica si el contador es menor o igual a 5
-            recomendaciones[contador] = juego  # Asigna el número de contador como clave y el juego como valor
-            contador += 1  # Incrementa el contador
-        else:
-            break
-    # print(recomendaciones)
-    return recomendaciones 
+#     for juego, _ in sorted_list:
+#         if contador <= 5:  # Verifica si el contador es menor o igual a 5
+#             recomendaciones[contador] = juego  # Asigna el número de contador como clave y el juego como valor
+#             contador += 1  # Incrementa el contador
+#         else:
+#             break
+#     # print(recomendaciones)
+#     return recomendaciones 
