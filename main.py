@@ -24,7 +24,6 @@ df_gastos_items = pd.read_parquet('data_render/df_gastos_items.parquet')
 df_genre_ranking = pd.read_parquet('data_render/df_genre_ranking.parquet')
 df_playtime_forever = pd.read_parquet('data_render/df_playtime_forever.parquet')
 df_items_developer = pd.read_parquet('data_render/df_items_developer.parquet')
-
 item_sim_df = pd.read_parquet('data_render/item_sim_df.parquet')
 
 
@@ -289,7 +288,7 @@ def sentiment_analysis(anio: str = Query(...,
 
 
 
-@app.get('/recomendacion_usuario',
+@app.get('/recomendacion_juego',
          description=""" <font color="blue">
                     INSTRUCCIONES<br>
                     1. Haga clik en "Try it out".<br>
@@ -298,13 +297,14 @@ def sentiment_analysis(anio: str = Query(...,
                     </font>
                     """,
          tags=["Recomendación"])
-def top_game(game):
+def recomendacion_juego(game):
     count = 1
-    similar_games = []
+    recomendaciones = {}
     for item in item_sim_df.sort_values(by=game, ascending=False).item_name[1:6]:
-        similar_games.append({count: item})
+        item = str(item)
+        recomendaciones[count] = item
         count += 1
-    return {'Similar games': similar_games}
+    return recomendaciones
 
 
 
