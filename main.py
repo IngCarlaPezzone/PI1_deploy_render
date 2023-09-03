@@ -9,24 +9,13 @@ from api_functions import presentacion
 # Se instancia la aplicación
 app = FastAPI()
 
-
-# Dataframes a usar
-# df_reviews = pd.read_csv('data/df_reviews_unido.csv')
-# df_gastos_items = pd.read_csv('data/df_gastos_items_unido.csv')
-# df_genre_ranking = pd.read_csv('data/df_genre_ranking_unido.csv')
-# df_playtime_forever = pd.read_csv('data/df_playtime_forever_unido.csv')
-# df_items_developer = pd.read_csv('data/df_items_developer_unido.csv')
-# df = pd.read_csv('data/df_merged.csv')
-
-# user_sim_df = pd.read_parquet('data_render/user_sim_df.parquet')
+# Datos para las consultas
 df_reviews = pd.read_parquet('data_render/df_reviews.parquet')
 df_gastos_items = pd.read_parquet('data_render/df_gastos_items.parquet')
 df_genre_ranking = pd.read_parquet('data_render/df_genre_ranking.parquet')
 df_playtime_forever = pd.read_parquet('data_render/df_playtime_forever.parquet')
 df_items_developer = pd.read_parquet('data_render/df_items_developer.parquet')
 item_sim_df = pd.read_parquet('data_render/item_sim_df.parquet')
-
-
 
 
 @app.get(path="/", 
@@ -287,66 +276,47 @@ def sentiment_analysis(anio: str = Query(...,
     return sentiment_counts
 
 
-
 @app.get('/recomendacion_juego',
          description=""" <font color="blue">
                     INSTRUCCIONES<br>
                     1. Haga clik en "Try it out".<br>
-                    2. Ingrese el id del usuario en box abajo.<br>
+                    2. Ingrese el nombre de un juego en box abajo.<br>
                     3. Scrollear a "Resposes" para ver los juegos recomendados para ese usuario.
                     </font>
                     """,
          tags=["Recomendación"])
-def recomendacion_juego(game):
+def recomendacion_juego(juego: str = Query(..., 
+                                         description="Juego a partir del cuál se hace la recomendación de otros juego", 
+                                         example="Killing Floor")):
+    '''
+    Realiza una lista de juegos recomendados en base a un juego dado.
+    
+    Args:
+        juego (str): El nombre del juego para el cual se desean encontrar juegos similares.
+    
+    Returns:
+        dict: Un diccionario con 5 nombres de juegos recomendados.
+    '''
+    # count = 1
+    # recomendaciones = {}
+    # for item in item_sim_df.sort_values(by=juego, ascending=False).item_name[1:6]:
+    #     item = str(item)
+    #     recomendaciones[count] = item
+    #     count += 1
+    # return recomendaciones
+    # Obtener la lista de juegos similares ordenados
+    similar_games = item_sim_df.sort_values(by=juego, ascending=False).iloc[1:6]
+
     count = 1
+    contador = 1
     recomendaciones = {}
-    for item in item_sim_df.sort_values(by=game, ascending=False).item_name[1:6]:
-        item = str(item)
-        recomendaciones[count] = item
-        count += 1
+    
+    for item in similar_games:
+        if contador <= 5:
+            item = str(item)
+            recomendaciones[count] = item
+            count += 1
+            contador += 1 
+        else:
+            break
     return recomendaciones
-
-
-
-
-
-# @app.get('/recomendacion_usuario2',
-#          description=""" <font color="blue">
-#                     INSTRUCCIONES<br>
-#                     1. Haga clik en "Try it out".<br>
-#                     2. Ingrese el id del usuario en box abajo.<br>
-#                     3. Scrollear a "Resposes" para ver los juegos recomendados para ese usuario.
-#                     </font>
-#                     """,
-#          tags=["Recomendación"])
-# def similar_user_recs(user):
-    
-#     if user not in piv_norm.columns:
-#         return('No data available on user {}'.format(user))
-    
-#     sim_users = user_sim_df.sort_values(by=user, ascending=False).user_id[1:11]
-#     best = []
-#     most_common = {}
-    
-#     for i in sim_users:
-#         i = str(i)
-#         max_score = piv_norm.loc[:, i].max()
-#         best.append(piv_norm[piv_norm.loc[:, i]==max_score].item_name.tolist())
-#     for i in range(len(best)):
-#         for j in best[i]:
-#             if j in most_common:
-#                 most_common[j] += 1
-#             else:
-#                 most_common[j] = 1
-#     sorted_list = sorted(most_common.items(), key=operator.itemgetter(1), reverse=True)
-#     recomendaciones = {}  # Inicializa un diccionario vacío
-#     contador = 1  # Inicializa un contador en 1
-
-#     for juego, _ in sorted_list:
-#         if contador <= 5:  # Verifica si el contador es menor o igual a 5
-#             recomendaciones[contador] = juego  # Asigna el número de contador como clave y el juego como valor
-#             contador += 1  # Incrementa el contador
-#         else:
-#             break
-#     # print(recomendaciones)
-#     return recomendaciones 
